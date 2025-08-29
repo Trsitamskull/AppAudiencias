@@ -1,0 +1,52 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Build results
+*.pyc
+*.pdb
+*.exe
+*.dll
+
+# Publish output
+publish/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Excel temp
+~$*
+
+# node modules (if any)
+node_modules/
+
+# JetBrains
+*.iml
+
+# Others
+*.DS_Store
+
+# Secret files
+secrets.json
+appsettings.Development.json

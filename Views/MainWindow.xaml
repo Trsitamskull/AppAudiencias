@@ -1,0 +1,544 @@
+<ui:FluentWindow x:Class="AudienciasApp.Views.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:local="clr-namespace:AudienciasApp.Views"
+                 xmlns:vm="clr-namespace:AudienciasApp.ViewModels"
+                 mc:Ignorable="d"
+                 Title="Gestor de Audiencias Judiciales"
+                 Height="750"
+                 Width="1200"
+                 MinHeight="650"
+                 MinWidth="900"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round">
+
+  <Window.DataContext>
+    <vm:MainViewModel/>
+  </Window.DataContext>
+
+  <Window.Resources>
+    <!-- Converters -->
+    <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+    <!-- Animations -->
+    <Storyboard x:Key="FadeIn">
+      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                       From="0"
+                       To="1"
+                       Duration="0:0:0.3"/>
+    </Storyboard>
+
+    <!-- Card Style -->
+    <Style x:Key="CardStyle"
+           TargetType="ui:Card">
+      <Setter Property="Margin"
+              Value="0,0,0,16"/>
+      <Setter Property="Padding"
+              Value="20"/>
+      <Style.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+          <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
+        </EventTrigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- Title Bar with Theme Toggle -->
+    <ui:TitleBar Grid.Row="0"
+                 Title="Gestor de Audiencias Judiciales"
+                 Height="46">
+      <ui:TitleBar.Header>
+        <Grid Width="1150">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Center"
+                      Margin="16,0"
+                      Grid.Column="0">
+            <ui:SymbolIcon Symbol="Gavel24"
+                           FontSize="20"
+                           Margin="0,0,12,0"/>
+            <TextBlock Text="Sistema de Gestión de Audiencias"
+                       FontSize="14"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <!-- Botones de tema dentro del header (mover Tray a aquí para v3.0.5) -->
+          <StackPanel Grid.Column="1"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Margin="0,0,16,0">
+            <ui:Button Icon="{ui:SymbolIcon WeatherSunny24}"
+                       ToolTip="Cambiar Tema"
+                       Command="{Binding ToggleThemeCommand}"
+                       Appearance="Transparent"
+                       Width="40"
+                       Height="30"
+                       Margin="4,0"/>
+            <ui:Button Icon="{ui:SymbolIcon Settings24}"
+                       ToolTip="Configuración"
+                       Appearance="Transparent"
+                       Width="40"
+                       Height="30"
+                       Margin="4,0"/>
+          </StackPanel>
+        </Grid>
+      </ui:TitleBar.Header>
+    </ui:TitleBar>
+
+    <!-- Main Content -->
+    <ScrollViewer Grid.Row="1"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+      <Grid Margin="24">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"
+                            MinWidth="500"/>
+          <ColumnDefinition Width="20"/>
+          <ColumnDefinition Width="*"
+                            MinWidth="350"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Column - Form -->
+        <StackPanel Grid.Column="0">
+
+          <!-- Header Card -->
+          <ui:Card Style="{StaticResource CardStyle}"
+                   Background="{DynamicResource ControlFillColorDefaultBrush}">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+
+              <ui:SymbolIcon Symbol="DocumentBulletList24"
+                             FontSize="32"
+                             Margin="0,0,16,0"
+                             VerticalAlignment="Center"/>
+
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="Registro de Audiencia Judicial"
+                           FontSize="20"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="Complete los datos de la audiencia judicial"
+                           Opacity="0.7"
+                           FontSize="12"
+                           Margin="0,4,0,0"/>
+              </StackPanel>
+            </Grid>
+          </ui:Card>
+
+          <!-- Form Fields Card -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <!-- Radicado del Proceso -->
+              <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,8,0">
+                  <TextBlock Text="Radicado del Proceso"
+                             FontWeight="Medium"
+                             Margin="0,0,0,8"/>
+                  <ui:TextBox PlaceholderText="Ej: 2025-00123"
+                              Text="{Binding CaseCode, UpdateSourceTrigger=PropertyChanged}"
+                              Icon="{ui:SymbolIcon DocumentText24}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Margin="8,0,0,0">
+                  <TextBlock Text="Tipo de Audiencia"
+                             FontWeight="Medium"
+                             Margin="0,0,0,8"/>
+                  <ComboBox
+                    SelectedItem="{Binding HearingType}"
+                    Width="Auto">
+                    <ComboBoxItem>Alegatos de conclusión</ComboBoxItem>
+                    <ComboBoxItem>Audiencia concentrada</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de acusación</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de conciliación</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de control de legalidad</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de individualización de pena</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de imputación</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de incidente de reparación integral</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de juicio oral</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de medidas de aseguramiento</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de nulidad</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de preclusión</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de prórroga</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de revisión de medida</ComboBoxItem>
+                    <ComboBoxItem>Audiencia de verificación de cumplimiento</ComboBoxItem>
+                    <ComboBoxItem>Audiencia preliminar</ComboBoxItem>
+                    <ComboBoxItem>Audiencia preparatoria</ComboBoxItem>
+                    <ComboBoxItem>Otra (opción para tipos no listados)</ComboBoxItem>
+                  </ComboBox>
+                </StackPanel>
+              </Grid>
+
+              <!-- Fecha y Hora -->
+              <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,8,0">
+                  <TextBlock Text="Fecha de la Audiencia"
+                             FontWeight="Medium"
+                             Margin="0,0,0,8"/>
+                  <DatePicker SelectedDate="{Binding HearingDate}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Margin="8,0,0,0">
+                  <TextBlock Text="Hora de la Audiencia"
+                             FontWeight="Medium"
+                             Margin="0,0,0,8"/>
+                  <ui:TextBox PlaceholderText="Ej: 08:30 AM"
+                              Text="{Binding HearingTime, UpdateSourceTrigger=PropertyChanged}"
+                              Icon="{ui:SymbolIcon Clock24}"/>
+                </StackPanel>
+              </Grid>
+
+              <!-- Juzgado -->
+              <StackPanel Margin="0,0,0,16">
+                <TextBlock Text="Juzgado/Tribunal"
+                           FontWeight="Medium"
+                           Margin="0,0,0,8"/>
+                <ui:TextBox PlaceholderText="Nombre del juzgado o tribunal"
+                            Text="{Binding Court, UpdateSourceTrigger=PropertyChanged}"
+                            Icon="{ui:SymbolIcon Building24}"/>
+              </StackPanel>
+
+              <!-- Separator -->
+              <Separator Margin="0,8,0,16"
+                         Opacity="0.3"/>
+
+              <!-- Estado de Realización -->
+              <StackPanel Margin="0,0,0,16">
+                <TextBlock Text="¿Se realizó la audiencia?"
+                           FontWeight="Medium"
+                           Margin="0,0,0,12"/>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+
+                  <RadioButton Grid.Column="0"
+                               Content="Sí, se realizó"
+                               GroupName="Realizada"
+                               IsChecked="{Binding IsRealizada}"
+                               Margin="0,0,8,0"/>
+
+                  <RadioButton Grid.Column="1"
+                               Content="No se realizó"
+                               GroupName="Realizada"
+                               IsChecked="{Binding IsNoRealizada}"
+                               Margin="8,0,0,0"/>
+                </Grid>
+              </StackPanel>
+
+              <!-- Motivo de No Realización (Condicional) -->
+              <ui:Card Visibility="{Binding IsNoRealizada, Converter={StaticResource BoolToVisibilityConverter}}"
+                       Background="{DynamicResource ControlFillColorTertiaryBrush}"
+                       Padding="16"
+                       Margin="0,0,0,16">
+                <ui:Card.Effect>
+                  <DropShadowEffect BlurRadius="10"
+                                    Direction="270"
+                                    ShadowDepth="2"
+                                    Opacity="0.1"/>
+                </ui:Card.Effect>
+
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal"
+                              Margin="0,0,0,12">
+                    <ui:SymbolIcon Symbol="Warning24"
+                                   Foreground="OrangeRed"
+                                   Margin="0,0,8,0"/>
+                    <TextBlock Text="Motivo de no realización"
+                               FontWeight="Medium"/>
+                  </StackPanel>
+
+                  <ComboBox SelectedItem="{Binding MotivoNoRealizada}"
+                            Width="300">
+                    <ComboBoxItem>Juez</ComboBoxItem>
+                    <ComboBoxItem>Fiscalía</ComboBoxItem>
+                    <ComboBoxItem>Usuario</ComboBoxItem>
+                    <ComboBoxItem>Inpec</ComboBoxItem>
+                    <ComboBoxItem>Víctima</ComboBoxItem>
+                    <ComboBoxItem>ICBF</ComboBoxItem>
+                    <ComboBoxItem>Defensor Confianza</ComboBoxItem>
+                    <ComboBoxItem>Defensor Público</ComboBoxItem>
+                  </ComboBox>
+                </StackPanel>
+              </ui:Card>
+
+              <!-- Observaciones -->
+              <StackPanel>
+                <TextBlock Text="Observaciones"
+                           FontWeight="Medium"
+                           Margin="0,0,0,8"/>
+                <ui:TextBox PlaceholderText="Comentarios adicionales (opcional)"
+                            Text="{Binding Observations, UpdateSourceTrigger=PropertyChanged}"
+                            MinHeight="80"
+                            TextWrapping="Wrap"
+                            AcceptsReturn="True"
+                            VerticalContentAlignment="Top"
+                            Icon="{ui:SymbolIcon Comment24}"/>
+              </StackPanel>
+            </StackPanel>
+          </ui:Card>
+
+          <!-- Action Buttons -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <StackPanel Orientation="Horizontal"
+                          HorizontalAlignment="Left">
+                <ui:Button Content="Guardar Registro"
+                           Command="{Binding SaveCommand}"
+                           Icon="{ui:SymbolIcon Save24}"
+                           Appearance="Primary"
+                           FontSize="14"
+                           Padding="16,10"
+                           Margin="0,0,8,0"/>
+
+                <ui:Button Content="Limpiar Formulario"
+                           Command="{Binding ClearCommand}"
+                           Icon="{ui:SymbolIcon Delete24}"
+                           Appearance="Secondary"
+                           FontSize="14"
+                           Padding="16,10"/>
+              </StackPanel>
+
+              <TextBlock Grid.Column="1"
+                         Text="{Binding StatusMessage}"
+                         VerticalAlignment="Center"
+                         Opacity="0.7"
+                         FontSize="12"/>
+            </Grid>
+          </ui:Card>
+        </StackPanel>
+
+        <!-- Right Column - Quick Actions & Stats -->
+        <StackPanel Grid.Column="2">
+
+          <!-- Quick Actions Card -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <TextBlock Text="Acciones Rápidas"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Margin="0,0,0,16"/>
+
+              <ui:Button Content="Crear Nuevo Archivo"
+                         Command="{Binding CreateCommand}"
+                         Icon="{ui:SymbolIcon DocumentAdd24}"
+                         HorizontalAlignment="Stretch"
+                         Appearance="Info"
+                         Margin="0,0,0,8"/>
+
+              <ui:Button Content="Abrir Archivo Existente"
+                         Command="{Binding OpenCommand}"
+                         Icon="{ui:SymbolIcon FolderOpen24}"
+                         HorizontalAlignment="Stretch"
+                         Margin="0,0,0,8"/>
+
+              <ui:Button Content="Descargar Archivo"
+                         Command="{Binding DownloadCommand}"
+                         Icon="{ui:SymbolIcon ArrowDownload24}"
+                         HorizontalAlignment="Stretch"
+                         Margin="0,0,0,8"/>
+
+              <ui:Button Content="Eliminar Archivo"
+                         Command="{Binding DeleteCommand}"
+                         Icon="{ui:SymbolIcon Delete24}"
+                         HorizontalAlignment="Stretch"
+                         Appearance="Danger"/>
+            </StackPanel>
+          </ui:Card>
+
+          <!-- Statistics Card -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <TextBlock Text="Estadísticas del Día"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Margin="0,0,0,16"/>
+
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Audiencias Realizadas -->
+                <ui:CardAction Grid.Row="0"
+                               Margin="0,0,0,8"
+                               IsChevronVisible="False">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ui:SymbolIcon Grid.Column="0"
+                                   Symbol="CheckmarkCircle24"
+                                   Foreground="Green"
+                                   Margin="0,0,12,0"/>
+
+                    <TextBlock Grid.Column="1"
+                               Text="Realizadas"
+                               VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding AudienciasRealizadas}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="Green"/>
+                  </Grid>
+                </ui:CardAction>
+
+                <!-- Audiencias No Realizadas -->
+                <ui:CardAction Grid.Row="1"
+                               Margin="0,0,0,8"
+                               IsChevronVisible="False">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ui:SymbolIcon Grid.Column="0"
+                                   Symbol="DismissCircle24"
+                                   Foreground="OrangeRed"
+                                   Margin="0,0,12,0"/>
+
+                    <TextBlock Grid.Column="1"
+                               Text="No Realizadas"
+                               VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding AudienciasNoRealizadas}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="OrangeRed"/>
+                  </Grid>
+                </ui:CardAction>
+
+                <!-- Total -->
+                <ui:CardAction Grid.Row="2"
+                               IsChevronVisible="False">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ui:SymbolIcon Grid.Column="0"
+                                   Symbol="Calculator24"
+                                   Margin="0,0,12,0"/>
+
+                    <TextBlock Grid.Column="1"
+                               Text="Total Registros"
+                               VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding TotalAudiencias}"
+                               FontSize="20"
+                               FontWeight="Bold"/>
+                  </Grid>
+                </ui:CardAction>
+              </Grid>
+            </StackPanel>
+          </ui:Card>
+
+          <!-- Recent Files Card -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <TextBlock Text="Archivos Recientes"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Margin="0,0,0,16"/>
+
+              <ItemsControl ItemsSource="{Binding RecentFiles}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <ui:CardAction Margin="0,0,0,4"
+                                   Command="{Binding DataContext.OpenRecentCommand,
+                                                               RelativeSource={RelativeSource AncestorType=Window}}"
+                                   CommandParameter="{Binding}">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ui:SymbolIcon Symbol="Document24"
+                                       Margin="0,0,8,0"/>
+
+                        <StackPanel Grid.Column="1">
+                          <TextBlock Text="{Binding FileName}"
+                                     FontSize="12"/>
+                          <TextBlock Text="{Binding LastModified}"
+                                     FontSize="10"
+                                     Opacity="0.6"/>
+                        </StackPanel>
+                      </Grid>
+                    </ui:CardAction>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <TextBlock Text="No hay archivos recientes"
+                         Visibility="{Binding HasNoRecentFiles,
+                                                Converter={StaticResource BoolToVisibilityConverter}}"
+                         Opacity="0.5"
+                         FontSize="12"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
+            </StackPanel>
+          </ui:Card>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <!-- Snackbar for notifications -->
+    <ui:SnackbarPresenter x:Name="RootSnackbar"
+                          Grid.Row="1"
+                          VerticalAlignment="Bottom"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,24"/>
+  </Grid>
+</ui:FluentWindow>
