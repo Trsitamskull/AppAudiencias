@@ -49,6 +49,27 @@ namespace AudienciasApp.Services
             });
         }
 
+        // Create file by explicit destination path (used when user chooses a filename)
+        public async Task<string> CreateNewFileAsync(string destinationPath)
+        {
+            return await Task.Run(() =>
+            {
+                var dir = Path.GetDirectoryName(destinationPath);
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir!);
+
+                // Copiar plantilla
+                File.Copy(_templatePath, destinationPath, true);
+
+                _currentFilePath = destinationPath;
+                _currentRow = 11;
+
+                var fileName = Path.GetFileName(destinationPath);
+                LogAction($"CREAR - Nuevo archivo: {fileName}");
+
+                return fileName;
+            });
+        }
+
         public async Task<bool> OpenFileAsync()
         {
             return await Task.Run(() =>
@@ -121,18 +142,27 @@ namespace AudienciasApp.Services
                     // F - Juzgado
                     worksheet.Cells[$"F{_currentRow}"].Value = hearing.Court;
 
-                    // G - ¿Se realizó? SI
+                    // G - ¿Se realizó? SI / H - ¿Se realizó? NO
+                    // Always clear the peer cells first to avoid leftover values
+                    worksheet.Cells[$"G{_currentRow}"].Value = null;
+                    worksheet.Cells[$"H{_currentRow}"].Value = null;
+
+                    // Clear all reason columns I-P for this row before setting the correct one
+                    string[] reasonCols = { "I", "J", "K", "L", "M", "N", "O", "P" };
+                    foreach (var rc in reasonCols)
+                    {
+                        worksheet.Cells[$"{rc}{_currentRow}"] .Value = null;
+                    }
+
                     if (hearing.WasHeld)
                     {
                         worksheet.Cells[$"G{_currentRow}"].Value = "SI";
                     }
-
-                    // H - ¿Se realizó? NO
-                    if (!hearing.WasHeld)
+                    else
                     {
                         worksheet.Cells[$"H{_currentRow}"].Value = "NO";
 
-                        // Marcar la razón correspondiente (I-P)
+                        // Set the corresponding reason (I-P)
                         switch (hearing.ReasonNotHeld)
                         {
                             case "Juez":
@@ -194,6 +224,9 @@ namespace AudienciasApp.Services
                 if (worksheet.Cells[$"H{row}"].Text == "NO")
                     totalNo++;
             }
+
+            // Escribir total de NO en Q111 por compatibilidad con plantillas que muestren el resumen en Observaciones
+            worksheet.Cells["Q111"].Value = totalNo;
 
             // Contar cada motivo (I-P)
             string[] columns = { "I", "J", "K", "L", "M", "N", "O", "P" };

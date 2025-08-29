@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using Wpf.Ui.Controls;
 using AudienciasApp.Services;
@@ -11,6 +12,14 @@ namespace AudienciasApp.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            // Ajustar tamaño si la pantalla tiene menos espacio (ej. pantallas FHD 1920x1080)
+            var workArea = SystemParameters.WorkArea;
+            if (this.Width > workArea.Width - 40)
+                this.Width = Math.Max(workArea.Width - 40, this.MinWidth);
+            if (this.Height > workArea.Height - 80)
+                this.Height = Math.Max(workArea.Height - 80, this.MinHeight);
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             // Inicializar el servicio de notificaciones: buscar el Snackbar en el árbol visual
             _notificationService = new NotificationService();

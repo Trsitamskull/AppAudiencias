@@ -8,9 +8,9 @@
                  xmlns:vm="clr-namespace:AudienciasApp.ViewModels"
                  mc:Ignorable="d"
                  Title="Gestor de Audiencias Judiciales"
-                 Height="750"
-                 Width="1200"
-                 MinHeight="650"
+                 Height="680"
+                 Width="1100"
+                 MinHeight="600"
                  MinWidth="900"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
@@ -76,6 +76,13 @@
             <TextBlock Text="Sistema de Gestión de Audiencias"
                        FontSize="14"
                        VerticalAlignment="Center"/>
+            <!-- Status message moved to header for higher visibility -->
+            <TextBlock Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       Opacity="0.9"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryAccentBrush}"/>
           </StackPanel>
 
           <!-- Botones de tema dentro del header (mover Tray a aquí para v3.0.5) -->
@@ -170,7 +177,8 @@
                              FontWeight="Medium"
                              Margin="0,0,0,8"/>
                   <ComboBox
-                    SelectedItem="{Binding HearingType}"
+                    SelectedValue="{Binding HearingType, Mode=TwoWay}"
+                    SelectedValuePath="Content"
                     Width="Auto">
                     <ComboBoxItem>Alegatos de conclusión</ComboBoxItem>
                     <ComboBoxItem>Audiencia concentrada</ComboBoxItem>
@@ -282,7 +290,8 @@
                                FontWeight="Medium"/>
                   </StackPanel>
 
-                  <ComboBox SelectedItem="{Binding MotivoNoRealizada}"
+                  <ComboBox SelectedValue="{Binding MotivoNoRealizada, Mode=TwoWay}"
+                            SelectedValuePath="Content"
                             Width="300">
                     <ComboBoxItem>Juez</ComboBoxItem>
                     <ComboBoxItem>Fiscalía</ComboBoxItem>

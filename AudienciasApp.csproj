@@ -13,4 +13,11 @@
     <PackageReference Include="WPF-UI" Version="3.0.5" />
   </ItemGroup>
 
+  <!-- Copy the Excel template to the output folder so runtime can find it -->
+  <ItemGroup>
+    <None Include="Assets\template\plantilla_audiencias.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
