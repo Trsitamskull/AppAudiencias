@@ -50,3 +50,8 @@ node_modules/
 # Secret files
 secrets.json
 appsettings.Development.json
+# Local appsettings that may contain API keys or secrets. Do NOT commit.
+appsettings.json
+appsettings.Local.json
+appsettings.*.local.json
+appsettings.user.json
