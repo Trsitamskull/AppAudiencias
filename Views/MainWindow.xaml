@@ -331,7 +331,7 @@
 
               <StackPanel Orientation="Horizontal"
                           HorizontalAlignment="Left">
-                <ui:Button Content="Guardar Registro"
+                <ui:Button Content="{Binding IsEditMode, Converter={StaticResource BoolToSaveButtonTextConverter}, FallbackValue='Guardar Registro'}"
                            Command="{Binding SaveCommand}"
                            Icon="{ui:SymbolIcon Save24}"
                            Appearance="Primary"
@@ -343,6 +343,15 @@
                            Command="{Binding ClearCommand}"
                            Icon="{ui:SymbolIcon Delete24}"
                            Appearance="Secondary"
+                           FontSize="14"
+                           Padding="16,10"
+                           Margin="0,0,8,0"/>
+
+                <ui:Button Content="Cancelar Edición"
+                           Command="{Binding CancelEditCommand}"
+                           Icon="{ui:SymbolIcon Dismiss24}"
+                           Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Appearance="Caution"
                            FontSize="14"
                            Padding="16,10"/>
               </StackPanel>
@@ -490,6 +499,84 @@
                   </Grid>
                 </ui:CardAction>
               </Grid>
+            </StackPanel>
+          </ui:Card>
+
+          <!-- Search and Edit Card (added) -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Buscar Registros"
+                           FontSize="16"
+                           FontWeight="SemiBold"/>
+
+                <ui:Button Grid.Column="1"
+                           Content="Actualizar"
+                           Command="{Binding RefreshCommand}"
+                           Icon="{ui:SymbolIcon ArrowSync24}"
+                           Appearance="Secondary"
+                           FontSize="12"/>
+              </Grid>
+
+              <ui:TextBox PlaceholderText="Buscar por radicado..."
+                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                          Icon="{ui:SymbolIcon Search24}"
+                          Margin="0,0,0,8"/>
+
+              <DataGrid ItemsSource="{Binding FilteredHearings}"
+                        SelectedItem="{Binding SelectedHearing}"
+                        AutoGenerateColumns="False"
+                        CanUserAddRows="False"
+                        MaxHeight="200"
+                        GridLinesVisibility="Horizontal"
+                        HeadersVisibility="Column">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="#"
+                                      Binding="{Binding RowNumber}"
+                                      Width="30"
+                                      IsReadOnly="True"/>
+                  <DataGridTextColumn Header="Radicado"
+                                      Binding="{Binding CaseCode}"
+                                      Width="80"/>
+                  <DataGridTextColumn Header="Fecha"
+                                      Binding="{Binding Date, StringFormat=dd/MM/yyyy}"
+                                      Width="75"/>
+                  <DataGridCheckBoxColumn Header="✓"
+                                          Binding="{Binding WasHeld}"
+                                          Width="25"
+                                          IsReadOnly="True"/>
+                  <DataGridTemplateColumn Header=""
+                      Width="60">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                          <ui:Button Icon="{ui:SymbolIcon Edit16}"
+                                     Command="{Binding DataContext.EditCommand,
+                                               RelativeSource={RelativeSource AncestorType=Window}}"
+                                     CommandParameter="{Binding}"
+                                     Appearance="Transparent"
+                                     ToolTip="Editar"
+                                     Width="28"
+                                     Height="28"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+
+              <TextBlock Text="No hay registros"
+                         Visibility="{Binding HasNoHearings,
+                                    Converter={StaticResource BoolToVisibilityConverter}}"
+                         Opacity="0.5"
+                         FontSize="12"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
             </StackPanel>
           </ui:Card>
 

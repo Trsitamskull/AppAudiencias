@@ -66,6 +66,29 @@ namespace AudienciasApp.ViewModels
         [ObservableProperty]
         private bool _hasNoRecentFiles = true;
 
+        // Búsqueda y edición
+        [ObservableProperty]
+        private ObservableCollection<HearingViewModel> _allHearings;
+
+        [ObservableProperty]
+        private ObservableCollection<HearingViewModel> _filteredHearings;
+
+        [ObservableProperty]
+        private HearingViewModel _selectedHearing;
+
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        [ObservableProperty]
+        private bool _hasNoHearings = true;
+
+        // Edit mode
+        [ObservableProperty]
+        private bool _isEditMode;
+
+        [ObservableProperty]
+        private int _editingRowNumber;
+
         // Estado del archivo actual
         private string _currentFilePath = string.Empty;
 
@@ -76,7 +99,11 @@ namespace AudienciasApp.ViewModels
             _notificationService = new NotificationService();
 
             RecentFiles = new ObservableCollection<RecentFile>();
+            AllHearings = new ObservableCollection<HearingViewModel>();
+            FilteredHearings = new ObservableCollection<HearingViewModel>();
+
             LoadRecentFiles();
+            LoadHearings();
         }
 
         // Comando para crear nuevo archivo
@@ -143,9 +170,11 @@ namespace AudienciasApp.ViewModels
                     if (_notificationService != null)
                     {
                         await _notificationService.ShowAsync("📂 Archivo abierto",
-                            Path.GetFileName(_currentFilePath),
+                        Path.GetFileName(_currentFilePath),
                             Wpf.Ui.Controls.ControlAppearance.Info);
                     }
+                    // Refresh hearings list when opening a file
+                    LoadHearings();
                 }
             }
             catch (Exception ex)
@@ -180,18 +209,34 @@ namespace AudienciasApp.ViewModels
                     Observations = Observations
                 };
 
-                await _excelService.SaveHearingAsync(hearing);
-
-                StatusMessage = "✅ Registro guardado";
-                UpdateStatistics();
-                ClearForm();
-
-                if (_notificationService != null)
+                if (IsEditMode)
                 {
-                    await _notificationService.ShowAsync("✅ Guardado",
-                        $"Audiencia registrada: {CaseCode}",
-                        Wpf.Ui.Controls.ControlAppearance.Success);
+                    await _excelService.UpdateHearingAsync(hearing, EditingRowNumber);
+                    StatusMessage = $"Registro #{EditingRowNumber} actualizado";
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.ShowAsync("✅ Actualizado",
+                            $"Registro #{EditingRowNumber} actualizado correctamente",
+                            Wpf.Ui.Controls.ControlAppearance.Success);
+                    }
                 }
+                else
+                {
+                    await _excelService.SaveHearingAsync(hearing);
+                    StatusMessage = "✅ Registro guardado";
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.ShowAsync("✅ Guardado",
+                            $"Audiencia registrada: {CaseCode}",
+                            Wpf.Ui.Controls.ControlAppearance.Success);
+                    }
+                }
+
+                UpdateStatistics();
+                LoadHearings();
+                ClearForm();
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("No hay archivo abierto"))
             {
@@ -353,6 +398,16 @@ namespace AudienciasApp.ViewModels
             IsNoRealizada = false;
             MotivoNoRealizada = string.Empty;
             Observations = string.Empty;
+            // Reset edit mode
+            IsEditMode = false;
+            EditingRowNumber = 0;
+        }
+
+        [RelayCommand]
+        private void CancelEdit()
+        {
+            ClearForm();
+            StatusMessage = "Edición cancelada";
         }
 
         private void LoadRecentFiles()
@@ -364,6 +419,79 @@ namespace AudienciasApp.ViewModels
                 RecentFiles.Add(file);
             }
             HasNoRecentFiles = RecentFiles.Count == 0;
+        }
+
+        // Load hearings from current file
+        private void LoadHearings()
+        {
+            try
+            {
+                AllHearings.Clear();
+                var hearings = _excelService.GetAllHearings();
+                foreach (var h in hearings)
+                {
+                    AllHearings.Add(h);
+                }
+                FilterHearings();
+            }
+            catch
+            {
+                AllHearings.Clear();
+                FilteredHearings.Clear();
+            }
+        }
+
+        private void FilterHearings()
+        {
+            FilteredHearings.Clear();
+
+            var filtered = string.IsNullOrWhiteSpace(SearchText)
+                ? AllHearings
+                : AllHearings.Where(h =>
+                    h.CaseCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    h.HearingType.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    h.Court.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var h in filtered)
+            {
+                FilteredHearings.Add(h);
+            }
+
+            HasNoHearings = FilteredHearings.Count == 0;
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterHearings();
+        }
+
+        [RelayCommand]
+        private void Refresh()
+        {
+            LoadHearings();
+            StatusMessage = "Lista actualizada";
+        }
+
+        [RelayCommand]
+        private void Edit(HearingViewModel hearing)
+        {
+            if (hearing == null) return;
+
+            // Enable edit mode and remember which row to update
+            IsEditMode = true;
+            EditingRowNumber = hearing.RowNumber;
+
+            CaseCode = hearing.CaseCode;
+            HearingType = hearing.HearingType;
+            HearingDate = hearing.Date;
+            HearingTime = hearing.Time;
+            Court = hearing.Court;
+            IsRealizada = hearing.WasHeld;
+            IsNoRealizada = !hearing.WasHeld;
+            MotivoNoRealizada = hearing.ReasonNotHeld;
+            Observations = hearing.Observations;
+
+            StatusMessage = $"Editando registro #{hearing.RowNumber}";
         }
 
         private void UpdateStatistics()

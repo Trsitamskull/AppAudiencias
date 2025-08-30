@@ -151,7 +151,7 @@ namespace AudienciasApp.Services
                     string[] reasonCols = { "I", "J", "K", "L", "M", "N", "O", "P" };
                     foreach (var rc in reasonCols)
                     {
-                        worksheet.Cells[$"{rc}{_currentRow}"] .Value = null;
+                        worksheet.Cells[$"{rc}{_currentRow}"].Value = null;
                     }
 
                     if (hearing.WasHeld)
@@ -202,6 +202,90 @@ namespace AudienciasApp.Services
                     _currentRow++;
 
                     LogAction($"GUARDAR - Registro #{_currentRow - 11} - Radicado: {hearing.CaseCode}");
+                }
+            });
+        }
+
+        public async Task UpdateHearingAsync(Hearing hearing, int rowNumber)
+        {
+            await Task.Run(() =>
+            {
+                if (string.IsNullOrEmpty(_currentFilePath))
+                {
+                    throw new InvalidOperationException("No hay archivo abierto.");
+                }
+
+                int targetRow = rowNumber + 10; // Convertir número de registro a fila Excel
+
+                if (targetRow < 11 || targetRow > 110)
+                {
+                    throw new InvalidOperationException($"Número de fila inválido: {rowNumber}");
+                }
+
+                using (var package = new ExcelPackage(new FileInfo(_currentFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+
+                    // Actualizar datos
+                    worksheet.Cells[$"B{targetRow}"].Value = hearing.CaseCode;
+                    worksheet.Cells[$"C{targetRow}"].Value = hearing.HearingType;
+                    worksheet.Cells[$"D{targetRow}"].Value = hearing.Date.ToString("dd/MM/yyyy");
+                    worksheet.Cells[$"E{targetRow}"].Value = hearing.Time;
+                    worksheet.Cells[$"F{targetRow}"].Value = hearing.Court;
+
+                    // Limpiar celdas G/H y I-P antes de actualizar
+                    worksheet.Cells[$"G{targetRow}"].Value = null;
+                    worksheet.Cells[$"H{targetRow}"].Value = null;
+
+                    string[] reasonCols = { "I", "J", "K", "L", "M", "N", "O", "P" };
+                    foreach (var rc in reasonCols)
+                    {
+                        worksheet.Cells[$"{rc}{targetRow}"].Value = null;
+                    }
+
+                    if (hearing.WasHeld)
+                    {
+                        worksheet.Cells[$"G{targetRow}"].Value = "SI";
+                    }
+                    else
+                    {
+                        worksheet.Cells[$"H{targetRow}"].Value = "NO";
+
+                        switch (hearing.ReasonNotHeld)
+                        {
+                            case "Juez":
+                                worksheet.Cells[$"I{targetRow}"].Value = "X";
+                                break;
+                            case "Fiscalía":
+                                worksheet.Cells[$"J{targetRow}"].Value = "X";
+                                break;
+                            case "Usuario":
+                                worksheet.Cells[$"K{targetRow}"].Value = "X";
+                                break;
+                            case "Inpec":
+                                worksheet.Cells[$"L{targetRow}"].Value = "X";
+                                break;
+                            case "Víctima":
+                                worksheet.Cells[$"M{targetRow}"].Value = "X";
+                                break;
+                            case "ICBF":
+                                worksheet.Cells[$"N{targetRow}"].Value = "X";
+                                break;
+                            case "Defensor Confianza":
+                                worksheet.Cells[$"O{targetRow}"].Value = "X";
+                                break;
+                            case "Defensor Público":
+                                worksheet.Cells[$"P{targetRow}"].Value = "X";
+                                break;
+                        }
+                    }
+
+                    worksheet.Cells[$"Q{targetRow}"].Value = hearing.Observations;
+
+                    UpdateTotals(worksheet);
+                    package.Save();
+
+                    LogAction($"ACTUALIZAR - Registro #{rowNumber} - Radicado: {hearing.CaseCode}");
                 }
             });
         }
@@ -380,6 +464,54 @@ namespace AudienciasApp.Services
             }
 
             return stats;
+        }
+
+        public List<HearingViewModel> GetAllHearings()
+        {
+            var hearings = new List<HearingViewModel>();
+
+            if (!string.IsNullOrEmpty(_currentFilePath) && File.Exists(_currentFilePath))
+            {
+                using (var package = new ExcelPackage(new FileInfo(_currentFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+
+                    for (int row = 11; row <= 110; row++)
+                    {
+                        var caseCode = worksheet.Cells[$"B{row}"].Text;
+                        if (string.IsNullOrEmpty(caseCode))
+                            continue;
+
+                        var hearing = new HearingViewModel
+                        {
+                            RowNumber = row - 10,
+                            CaseCode = caseCode,
+                            HearingType = worksheet.Cells[$"C{row}"].Text,
+                            Date = DateTime.TryParse(worksheet.Cells[$"D{row}"].Text, out var dt) ? dt : DateTime.Now,
+                            Time = worksheet.Cells[$"E{row}"].Text,
+                            Court = worksheet.Cells[$"F{row}"].Text,
+                            WasHeld = worksheet.Cells[$"G{row}"].Text == "SI",
+                            Observations = worksheet.Cells[$"Q{row}"].Text
+                        };
+
+                        if (!hearing.WasHeld)
+                        {
+                            if (worksheet.Cells[$"I{row}"].Text == "X") hearing.ReasonNotHeld = "Juez";
+                            else if (worksheet.Cells[$"J{row}"].Text == "X") hearing.ReasonNotHeld = "Fiscalía";
+                            else if (worksheet.Cells[$"K{row}"].Text == "X") hearing.ReasonNotHeld = "Usuario";
+                            else if (worksheet.Cells[$"L{row}"].Text == "X") hearing.ReasonNotHeld = "Inpec";
+                            else if (worksheet.Cells[$"M{row}"].Text == "X") hearing.ReasonNotHeld = "Víctima";
+                            else if (worksheet.Cells[$"N{row}"].Text == "X") hearing.ReasonNotHeld = "ICBF";
+                            else if (worksheet.Cells[$"O{row}"].Text == "X") hearing.ReasonNotHeld = "Defensor Confianza";
+                            else if (worksheet.Cells[$"P{row}"].Text == "X") hearing.ReasonNotHeld = "Defensor Público";
+                        }
+
+                        hearings.Add(hearing);
+                    }
+                }
+            }
+
+            return hearings.OrderByDescending(h => h.Date).ThenByDescending(h => h.RowNumber).ToList();
         }
 
         private void LogAction(string action)
