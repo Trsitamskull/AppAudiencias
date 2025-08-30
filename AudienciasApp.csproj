@@ -8,10 +8,27 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="EPPlus" Version="7.5.2" />
+    <PackageReference Include="itext7" Version="9.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.8" />
     <PackageReference Include="WPF-UI" Version="3.0.5" />
   </ItemGroup>
+
+  <!-- Ensure appsettings.json is available at runtime -->
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <UserSecretsId>audiencias-app-secrets-12345</UserSecretsId>
+  </PropertyGroup>
 
   <!-- Copy the Excel template to the output folder so runtime can find it -->
   <ItemGroup>

@@ -151,6 +151,60 @@
             </Grid>
           </ui:Card>
 
+          <!-- AI Tools Card -->
+          <ui:Card Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <TextBlock Text="🤖 Herramientas IA"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Margin="0,0,0,16"/>
+
+              <ui:InfoBar IsOpen="True"
+                          Severity="Informational"
+                          IsClosable="False"
+                          Margin="0,0,0,12">
+                <ui:InfoBar.Content>
+                  <TextBlock Text="Use IA para acelerar el registro de audiencias"
+                             TextWrapping="Wrap"
+                             FontSize="11"/>
+                </ui:InfoBar.Content>
+              </ui:InfoBar>
+
+              <ui:Button Content="Autocompletado Inteligente"
+                         Command="{Binding OpenAIAssistantCommand}"
+                         Icon="{ui:SymbolIcon Sparkle24}"
+                         HorizontalAlignment="Stretch"
+                         Appearance="Info"
+                         Margin="0,0,0,8"
+                         ToolTip="Complete el formulario describiendo la audiencia en texto libre"/>
+
+              <ui:Button Content="Importación Masiva"
+                         Command="{Binding BatchImportCommand}"
+                         Icon="{ui:SymbolIcon DocumentMultiple24}"
+                         HorizontalAlignment="Stretch"
+                         Appearance="Primary"
+                         ToolTip="Procese documentos PDF/Word para extraer múltiples audiencias"/>
+
+              <Separator Margin="0,12,0,12"
+                  Opacity="0.3"/>
+
+              <StackPanel>
+                <TextBlock Text="Estado del Servicio IA:"
+                           FontSize="11"
+                           Opacity="0.7"
+                           Margin="0,0,0,4"/>
+                <StackPanel Orientation="Horizontal">
+                  <Ellipse Width="8"
+                      Height="8"
+                           Fill="{Binding AiServiceStatusColor}"
+                           Margin="0,0,6,0"/>
+                  <TextBlock Text="{Binding AiServiceStatus}"
+                             FontSize="11"/>
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </ui:Card>
+
           <!-- Form Fields Card -->
           <ui:Card Style="{StaticResource CardStyle}">
             <StackPanel>
@@ -346,6 +400,15 @@
                            FontSize="14"
                            Padding="16,10"
                            Margin="0,0,8,0"/>
+
+                <ui:Button Content="✨ Asistente IA"
+                           Command="{Binding OpenAIAssistantCommand}"
+                           Icon="{ui:SymbolIcon Sparkle24}"
+                           Appearance="Info"
+                           FontSize="14"
+                           Padding="16,10"
+                           Margin="8,0,8,0"
+                           ToolTip="Autocompletar formulario usando IA"/>
 
                 <ui:Button Content="Cancelar Edición"
                            Command="{Binding CancelEditCommand}"
@@ -551,7 +614,7 @@
                                           Width="25"
                                           IsReadOnly="True"/>
                   <DataGridTemplateColumn Header=""
-                      Width="60">
+                                          Width="60">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <StackPanel Orientation="Horizontal">

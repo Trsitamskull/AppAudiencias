@@ -49,6 +49,12 @@ namespace AudienciasApp.ViewModels
         [ObservableProperty]
         private string _statusMessage = "Listo";
 
+        [ObservableProperty]
+        private string _aiServiceStatus = "Desconocido";
+
+        [ObservableProperty]
+        private System.Windows.Media.Brush _aiServiceStatusColor = System.Windows.Media.Brushes.Gray;
+
         // Estadísticas
         [ObservableProperty]
         private int _audienciasRealizadas;
@@ -104,6 +110,63 @@ namespace AudienciasApp.ViewModels
 
             LoadRecentFiles();
             LoadHearings();
+        }
+
+        [RelayCommand]
+        private async Task OpenAIAssistantAsync()
+        {
+            try
+            {
+                var dlg = new Views.Dialogs.AIAutoCompleteDialog();
+                dlg.Owner = Application.Current.MainWindow;
+                var result = dlg.ShowDialog();
+                if (result == true && dlg.ExtractedHearing != null)
+                {
+                    var r = dlg.ExtractedHearing;
+                    CaseCode = r.CaseCode;
+
+                    // Initialize AI service status
+                    try
+                    {
+                        var ai = new AudienciasApp.Services.AI.OpenAIService();
+                        if (ai.IsConfigured)
+                        {
+                            AiServiceStatus = "Conectado";
+                            AiServiceStatusColor = System.Windows.Media.Brushes.Green;
+                        }
+                        else
+                        {
+                            AiServiceStatus = "No Configurado";
+                            AiServiceStatusColor = System.Windows.Media.Brushes.OrangeRed;
+                        }
+                    }
+                    catch
+                    {
+                        AiServiceStatus = "Error";
+                        AiServiceStatusColor = System.Windows.Media.Brushes.Gray;
+                    }
+                    HearingType = r.HearingType;
+                    HearingDate = r.Date ?? DateTime.Now;
+                    HearingTime = string.IsNullOrWhiteSpace(r.Time) ? "08:30" : r.Time;
+                    Court = r.Court;
+                    if (r.WasHeld.HasValue)
+                    {
+                        IsRealizada = r.WasHeld.Value;
+                        IsNoRealizada = !r.WasHeld.Value;
+                    }
+                    MotivoNoRealizada = r.ReasonNotHeld;
+                    Observations = r.Observations;
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.ShowAsync("✨ IA aplicada", "Campos completados automáticamente", Wpf.Ui.Controls.ControlAppearance.Success);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error abriendo asistente IA: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // Comando para crear nuevo archivo
@@ -517,6 +580,45 @@ namespace AudienciasApp.ViewModels
             // Este método puede ser llamado desde MainWindow.xaml.cs si es necesario
             // Por ahora el servicio se inicializa en el constructor
             _notificationService = service ?? _notificationService;
+        }
+
+        // Comando para importar en lote
+        [RelayCommand]
+        private async Task BatchImportAsync()
+        {
+            var dialog = new Views.Dialogs.BatchImportDialog();
+            dialog.Owner = Application.Current.MainWindow;
+
+            if (dialog.ShowDialog() == true && dialog.SelectedHearings?.Any() == true)
+            {
+                try
+                {
+                    StatusMessage = $"Importando {dialog.SelectedHearings.Count} audiencias...";
+                    int imported = 0;
+                    foreach (var hearing in dialog.SelectedHearings)
+                    {
+                        await _excelService.SaveHearingAsync(hearing);
+                        imported++;
+                        StatusMessage = $"Importando... {imported}/{dialog.SelectedHearings.Count}";
+                    }
+
+                    await _notificationService.ShowAsync(
+                        "📄 Importación Completa",
+                        $"{dialog.SelectedHearings.Count} audiencias importadas correctamente",
+                        Wpf.Ui.Controls.ControlAppearance.Success
+                    );
+
+                    StatusMessage = $"✅ {dialog.SelectedHearings.Count} audiencias importadas";
+                    LoadHearings();
+                    UpdateStatistics();
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Error durante la importación: {ex.Message}",
+                        "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    StatusMessage = "Error en importación";
+                }
+            }
         }
     }
 }

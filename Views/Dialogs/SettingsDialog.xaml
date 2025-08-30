@@ -1,0 +1,265 @@
+<ui:FluentWindow x:Class="AudienciasApp.Views.Dialogs.SettingsDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="⚙️ Configuración"
+                 Width="600"
+                 Height="500"
+                 WindowStartupLocation="CenterOwner">
+    
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Configuración de la Aplicación"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,16"/>
+        
+        <!-- Settings Tabs -->
+        <TabControl Grid.Row="1">
+            <!-- AI Settings Tab -->
+            <TabItem Header="🤖 Inteligencia Artificial">
+                <ScrollViewer Margin="16">
+                    <StackPanel>
+                        <!-- Provider Selection -->
+                        <TextBlock Text="Proveedor de IA"
+                                   FontWeight="Medium"
+                                   Margin="0,0,0,8"/>
+                        <ComboBox x:Name="ProviderCombo"
+                                  Margin="0,0,0,16">
+                            <ComboBoxItem Content="OpenAI (GPT-4)" IsSelected="True"/>
+                            <ComboBoxItem Content="Anthropic (Claude)" IsEnabled="False"/>
+                            <ComboBoxItem Content="Azure OpenAI" IsEnabled="False"/>
+                        </ComboBox>
+                        
+                        <!-- API Key -->
+                        <TextBlock Text="API Key"
+                                   FontWeight="Medium"
+                                   Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <PasswordBox x:Name="ApiKeyBox"
+                                         PasswordChar="•"/>
+                            
+                            <ui:Button Grid.Column="1"
+                                       x:Name="ShowApiKeyButton"
+                                       Content="👁"
+                                       Click="ShowApiKey_Click"
+                                       Margin="8,0,0,0"
+                                       Width="40"/>
+                        </Grid>
+                        
+                        <!-- Info Bar -->
+                        <ui:InfoBar IsOpen="True"
+                                    Severity="Informational"
+                                    Title="Cómo obtener una API Key">
+                            <ui:InfoBar.Content>
+                                <StackPanel>
+                                    <TextBlock TextWrapping="Wrap">
+                                        <Run Text="1. Visita"/>
+                                        <Hyperlink NavigateUri="https://platform.openai.com/api-keys"
+                                                   RequestNavigate="Hyperlink_RequestNavigate">
+                                            platform.openai.com
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <TextBlock Text="2. Crea una cuenta o inicia sesión"/>
+                                    <TextBlock Text="3. Genera una nueva API key"/>
+                                    <TextBlock Text="4. Copia y pégala aquí"/>
+                                </StackPanel>
+                            </ui:InfoBar.Content>
+                        </ui:InfoBar>
+                        
+                        <!-- Model Selection -->
+                        <TextBlock Text="Modelo"
+                                   FontWeight="Medium"
+                                   Margin="0,16,0,8"/>
+                        <ComboBox x:Name="ModelCombo"
+                                  Margin="0,0,0,16">
+                            <ComboBoxItem Content="gpt-4" IsSelected="True"/>
+                            <ComboBoxItem Content="gpt-4-turbo-preview"/>
+                            <ComboBoxItem Content="gpt-3.5-turbo"/>
+                        </ComboBox>
+                        
+                        <!-- Advanced Settings -->
+                        <Expander Header="Configuración Avanzada"
+                                  Margin="0,16,0,0">
+                            <StackPanel Margin="0,8,0,0">
+                                <!-- Temperature -->
+                                <TextBlock Text="Temperatura (Creatividad)"
+                                           Margin="0,0,0,4"/>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Slider x:Name="TemperatureSlider"
+                                            Minimum="0" Maximum="1"
+                                            Value="0.3"
+                                            TickFrequency="0.1"
+                                            IsSnapToTickEnabled="True"/>
+                                    
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding ElementName=TemperatureSlider, Path=Value, StringFormat={}{0:F1}}"
+                                               HorizontalAlignment="Center"/>
+                                </Grid>
+                                
+                                <!-- Max Tokens -->
+                                <TextBlock Text="Tokens Máximos"
+                                           Margin="0,0,0,4"/>
+                                <ui:NumberBox x:Name="MaxTokensBox"
+                                              Value="2000"
+                                              Minimum="100"
+                                              Maximum="8000"
+                                              SpinButtonPlacementMode="Inline"
+                                              Margin="0,0,0,12"/>
+                                
+                                <!-- Timeout -->
+                                <TextBlock Text="Timeout (segundos)"
+                                           Margin="0,0,0,4"/>
+                                <ui:NumberBox x:Name="TimeoutBox"
+                                              Value="30"
+                                              Minimum="10"
+                                              Maximum="120"
+                                              SpinButtonPlacementMode="Inline"/>
+                            </StackPanel>
+                        </Expander>
+                        
+                        <!-- Test Connection -->
+                        <ui:Button Content="Probar Conexión"
+                                   Icon="{ui:SymbolIcon CloudCheckmark24}"
+                                   x:Name="TestConnectionButton"
+                                   Click="TestConnection_Click"
+                                   Margin="0,24,0,0"
+                                   HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- General Settings Tab -->
+            <TabItem Header="⚙️ General">
+                <ScrollViewer Margin="16">
+                    <StackPanel>
+                        <!-- Theme -->
+                        <TextBlock Text="Tema de la Aplicación"
+                                   FontWeight="Medium"
+                                   Margin="0,0,0,8"/>
+                        <RadioButton x:Name="ThemeLightRadio"
+                                     Content="Claro"
+                                     GroupName="Theme"
+                                     Margin="0,0,0,4"/>
+                        <RadioButton x:Name="ThemeDarkRadio"
+                                     Content="Oscuro"
+                                     GroupName="Theme"
+                                     IsChecked="True"
+                                     Margin="0,0,0,4"/>
+                        <RadioButton x:Name="ThemeSystemRadio"
+                                     Content="Seguir al sistema"
+                                     GroupName="Theme"
+                                     Margin="0,0,0,16"/>
+                        
+                        <!-- Auto Save -->
+                        <CheckBox x:Name="AutoSaveCheckBox"
+                                  Content="Guardar automáticamente"
+                                  IsChecked="True"
+                                  Margin="0,0,0,16"/>
+                        
+                        <!-- Recent Files -->
+                        <TextBlock Text="Archivos Recientes"
+                                   FontWeight="Medium"
+                                   Margin="0,0,0,8"/>
+                        <ui:NumberBox x:Name="RecentFilesCountBox"
+                                      PlaceholderText="Número de archivos recientes"
+                                      Value="10"
+                                      Minimum="5"
+                                      Maximum="20"
+                                      SpinButtonPlacementMode="Inline"
+                                      Margin="0,0,0,16"/>
+                        
+                        <!-- Clear Data -->
+                        <ui:Button Content="Limpiar Archivos Recientes"
+                                   Icon="{ui:SymbolIcon Delete24}"
+                                   Appearance="Caution"
+                                   Click="ClearRecentFiles_Click"
+                                   Margin="0,0,0,8"/>
+                        
+                        <ui:Button Content="Limpiar Caché de IA"
+                                   Icon="{ui:SymbolIcon BrainCircuit24}"
+                                   Appearance="Caution"
+                                   Click="ClearAICache_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <!-- About Tab -->
+            <TabItem Header="ℹ️ Acerca de">
+                <StackPanel Margin="16">
+                    <ui:Card Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Gestor de Audiencias Judiciales"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,8"/>
+                            
+                            <TextBlock Text="Versión 2.0.0 con IA"
+                                       Opacity="0.7"
+                                       Margin="0,0,0,16"/>
+                            
+                            <TextBlock TextWrapping="Wrap"
+                                       Margin="0,0,0,16">
+                                Aplicación para gestionar audiencias judiciales con capacidades de inteligencia artificial para autocompletado y procesamiento masivo de documentos.
+                            </TextBlock>
+                            
+                            <TextBlock Text="Características IA:"
+                                       FontWeight="Medium"
+                                       Margin="0,0,0,8"/>
+                            
+                            <TextBlock Margin="12,0,0,4">• Autocompletado inteligente de formularios</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• Extracción desde documentos PDF/Word</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• Procesamiento por lotes</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• Validación automática de datos</TextBlock>
+                            
+                            <Separator Margin="0,16,0,16"/>
+                            
+                            <TextBlock Text="Desarrollado con:"
+                                       FontWeight="Medium"
+                                       Margin="0,0,0,8"/>
+                            
+                            <TextBlock Margin="12,0,0,4">• WPF UI (Fluent Design)</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• .NET 9.0</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• OpenAI GPT-4</TextBlock>
+                            <TextBlock Margin="12,0,0,4">• EPPlus (Excel)</TextBlock>
+                        </StackPanel>
+                    </ui:Card>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <ui:Button x:Name="SaveButton"
+                       Content="Guardar"
+                       Icon="{ui:SymbolIcon Save24}"
+                       Appearance="Primary"
+                       Click="Save_Click"
+                       Margin="0,0,8,0"/>
+            
+            <ui:Button Content="Cancelar"
+                       IsCancel="True"
+                       Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>
